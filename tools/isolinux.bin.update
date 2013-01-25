@@ -29,9 +29,11 @@ fi
 
 cd $PKG
 
+if  $USEKITNAME ; then
 #替换相应的路径
-sed -i -r "s:/boot/syslinux:/$LIVEKITNAME/boot:" core/fs/iso9660/iso9660.c
-sed -i -r "s:/boot/syslinux:/$LIVEKITNAME/boot:" core/fs/lib/loadconfig.c
+	sed -i -r "s:/boot/syslinux:/$LIVEKITNAME/boot:" core/fs/iso9660/iso9660.c
+	sed -i -r "s:/boot/syslinux:/$LIVEKITNAME/boot:" core/fs/lib/loadconfig.c
+fi
 
 #编译，出错可以忽略
 make -i
