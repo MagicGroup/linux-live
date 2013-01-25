@@ -15,7 +15,7 @@ UNION=$MEMORY/union
 DATAMNT=$MEMORY/data
 BUNDLES=$MEMORY/bundles
 
-header "Live Kit init <http://www.linux-live.org/>"
+header "Maigc live start <http://www.magiclinux.org/>"
 
 init_proc_sysfs
 
