@@ -1,29 +1,29 @@
-Linux Live Kit
+Linux Live 工具包
 ==============
 
-Use this set of scripts to turn your existing preinstalled Linux
-distribution into a Live Kit (formely known as Live CD).
+用这组脚本可以把一个预安装的 Linux 发行版本，变成 Live 系统的。
+比如说一般所说的 Live CD。
 
-* Before you start building your Kit, edit the file ./.config
-  Most importantly change the LIVEKITNAME variable.
+* 在开始构建 Live 系统之前，要编辑 ./.config 以设定一些参数。
+  最重要的是要更改 LIVEKITNAME 变量。
 
-* Make sure your kernel is in /boot/vmlinuz
+* 确认你的内核是 /boot/vmlinuz（这个可以看情况）。
 
-* You may also wish to replace boot graphics in ./bootfiles/bootlogo.png
-  and reorganize isolinux.cfg to fit your needs (when editing the file,
-  keep all paths in /boot/, it will be rellocated during LiveKit creation)
+* 你也可以替换掉启动的图形，是 ./bootfiles/bootlogo.png 文件。
+  也可以重新编辑 isolinux.cfg 以适应你的需要。
+  不过注意编辑的时候不能修改 /boot/ 的地方。它会在制作过程中被替换。
 
-* If you plan to boot your Live Kit from CD, you need to recompile
-  syslinux.bin else it won't be able to boot your Live Kit from directory
-  LIVEKITNAME. There is a script prepared for you which will handle all
-  of that. Simply go to directory ./tools/ and run isolinux.bin.update ...
-  it will update ./bootfiles/isolinux.bin automatically by downloading
-  isolinux sources, patching them using your actual LIVEKITNAME and
-  recompiling. This step is not needed if you plan to boot from USB only.
+* 如果你想从光盘启动 Live 系统，你需要重编译 syslinux.bin，否则你将
+　无法从 LIVEKITNAME  目录启动 Live。
+  这里准备了一个现成的脚本来做这个事情。只要进入 ./tools/ 目录并运行
+　isolinux.bin.update ...，它会自动更新 ./bootfiles/isolinux.bin。
+　如果你想从 USB 启动，这步不需要。
+　如果用 grub 启动，这步也不需要。
 
-* When done, run the ./build script to create your Live Kit
-  - it will create ISO and TAR files for you in /tmp
-  - make sure you have enough free space in /tmp to handle it
+* 修改好以后，运行 ./build 脚本来创建你的 Live 系统。
+  - 它会在 /tmp 目录中创建 ISO 和 TAR 文件（可以设置）。
+  - 确认你的 /tmp 有足够的空间来处理它。
 
 
-Author: Tomas M. <http://www.linux-live.org>
+作者: Tomas M. <http://www.linux-live.org>
+　　　sejishikong  <http://www.linuxfans.org>
