@@ -1,26 +1,46 @@
 #!/bin/bash
 
-# This script will update the file ../bootfiles/isolinux.bin to match
-# your LiveKit name used in ../.config
+# 这个脚本会更新 ../bootfiles/isolinux.bin 文件，以匹配你在 ../.config 
+# 中设置的名字
 
-PKG=syslinux-4.06
-PKGTGZ=$PKG.tar.gz
+#syslinux 的版本号
+PKGV=5.00
+PKG=syslinux-$PKGV
+PKGTGZ=$PKG.tar.xz
 DL="http://www.kernel.org/pub/linux/utils/boot/syslinux/$PKGTGZ"
+DOWNBIN=wget
 
+#引入相应的变量设置
 . ../.config
 
-# download, unpack, and patch syslinux
-wget -c "$DL"
-tar -xf $PKGTGZ
-rm $PKGTGZ
+#下载 syslinux
+if which $DOWNBIN;then
+	if $DOWNBIN -c "$DL";then
+		tar -xf $PKGTGZ
+		rm $PKGTGZ
+	else
+	echo "无法下载 syslinux，请检查网络环境"
+	exit 1
+	fi
+else
+	echo "需要 $DOWNBIN，请先安装"
+	exit 1
+fi
 
 cd $PKG
 
+#替换相应的路径
 sed -i -r "s:/boot/syslinux:/$LIVEKITNAME/boot:" core/fs/iso9660/iso9660.c
 sed -i -r "s:/boot/syslinux:/$LIVEKITNAME/boot:" core/fs/lib/loadconfig.c
 
+#编译，出错可以忽略
 make -i
-cp core/isolinux.bin ../../bootfiles/isolinux.bin
+if [ -f core/isolinux.bin ];then
+	cp core/isolinux.bin ../../bootfiles/isolinux.bin
+else
+	echo "编译没有正常完成，请检查编译环境"
+	exit 1
+fi
 
 echo
 echo "Copying isolinux.bin to $(realpath ../../bootfiles/isolinux.bin)"
