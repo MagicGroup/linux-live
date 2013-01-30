@@ -41,23 +41,26 @@ cd ..
 # create live kit filesystem (cpio archive)
 # 删除临时目录
 rm -Rf "$LIVEKITDATA"
-if $USEKITNAME ;then
+if [ $USEKITNAME = "1" ] ; then
 	BOOT="$LIVEKITDATA"/"$LIVEKITNAME"/boot
 else
 	BOOT="$LIVEKITDATA"/boot
 fi
 mkdir -p "$BOOT"
-mkdir -p "$BOOT"/../changes
-mkdir -p "$BOOT"/../modules
+if [ $USEKITNAME = "1" ] ; then
+	mkdir -p "$BOOT"/../changes
+	mkdir -p "$BOOT"/../modules
+else
+        mkdir -p "$LIVEKITNAME"/changes
+        mkdir -p "$LIVEKITNAME"/modules
+fi
 mv "$INITRAMFS" $BOOT/initrfs.img
 cp bootfiles/* $BOOT
 if $USEKITNAME ;then
 	cat bootfiles/syslinux.cfg | sed -r "s:/boot/:/$LIVEKITNAME/boot/:" > $BOOT/syslinux.cfg
 	cat bootfiles/bootinst.bat | sed -r "s:/boot/:/$LIVEKITNAME/boot/:" | sed -r "s:\\\\boot\\\\:\\\\$LIVEKITNAME\\\\boot\\\\:" > $BOOT/bootinst.bat
 fi
-# syslinux.cfg 中的 vmlinuz 换成实际情况的
-sed -i "s/vmlinuz/$VMLINUZ" $BOOT/syslinux.cfg
-cp $VMLINUZ $BOOT/
+cp $VMLINUZ $BOOT/vmlinuz
 
 # 如果已经存在模块，就直接拷贝
 if [ -d sb ]; then
@@ -92,7 +95,7 @@ fi
 ARCH=$(uname -m)
 
 # 制作 iso，下一步加入 grub4dos 的支持
-if $USEKITNAME ; then
+if [ $USEKITNAME = "1" ]; then
 	mkisofs -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
 	-no-emul-boot -boot-info-table -boot-load-size 4 \
 	-b "$LIVEKITNAME"/boot/isolinux.bin -c "$LIVEKITNAME"/boot/isolinux.boot . \

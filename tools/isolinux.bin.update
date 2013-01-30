@@ -4,18 +4,19 @@
 # 中设置的名字
 
 #syslinux 的版本号
-PKGV=5.00
+PKGV=4.06
 PKG=syslinux-$PKGV
 PKGTGZ=$PKG.tar.xz
 DL="http://www.kernel.org/pub/linux/utils/boot/syslinux/$PKGTGZ"
 DOWNBIN=wget
+DOWNARG="-c"
 
 #引入相应的变量设置
 . ../.config
 
 #下载 syslinux
 if which $DOWNBIN;then
-	if $DOWNBIN -c "$DL";then
+	if $DOWNBIN $DOWNARG "$DL";then
 		tar -xf $PKGTGZ
 		rm $PKGTGZ
 	else
@@ -29,10 +30,13 @@ fi
 
 cd $PKG
 
-if  $USEKITNAME ; then
+if [ $USEKITNAME = "1" ] ; then
 #替换相应的路径
 	sed -i -r "s:/boot/syslinux:/$LIVEKITNAME/boot:" core/fs/iso9660/iso9660.c
 	sed -i -r "s:/boot/syslinux:/$LIVEKITNAME/boot:" core/fs/lib/loadconfig.c
+else
+	sed -i -r "s:/boot/syslinux:/boot:" core/fs/iso9660/iso9660.c
+        sed -i -r "s:/boot/syslinux:/boot:" core/fs/lib/loadconfig.c
 fi
 
 #编译，出错可以忽略
