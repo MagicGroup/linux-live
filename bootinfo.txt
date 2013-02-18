@@ -1,23 +1,23 @@
-# This file gets copied to LiveKit ZIP build, in order to provide
-# some basic information for the user - mostly hints to encourage
-# the user to run /mylinux/boot/bootinst.sh(bat).
+# 这个文件会复制到 Live 的 ZIP 版本（即U盘和硬盘版本）中。
+# 以提供一些基本的使用信息，比如怎么运行 /mylinux/boot/bootinst.sh(bat)。
 #
-# Lines containing # are ignored
+# 包含 # 的行会忽略。
 #
-Thank you for using mylinux!
-Steps to make it bootable from your USB device:
+谢谢你使用 mylinux!
+从 USB 设备启动的设置步骤如下：
 
-1) Extract the contents of ZIP archive to your USB drive.
-   If you are using Windows, you will get for example E:\mylinux\
-   You probably already did this, just make sure you extracted
-   the archive to your USB drive and not to your local harddisk.
+1) 把压缩文件的内容解压到你的 USB 设备。
+   如果你使用 Windows，你会看到像 E:\mylinux\ 这样的目录（及 E:\boot）。
+   你可能已经做了这步，只要确认确实是解压到 USB 设备上，而不是本地硬盘。
 
-2) Now navigate to directory /mylinux/boot/ on your USB drive.
-   In Windows, it will be E:\mylinux\boot\ for example.
-   Use explorer or any other file manager for this task.
+2) 现在进入到 USB 设备上的 /boot/ 目录。
+   在 Windows上，它会是 E:\boot\ 之类的。
+   使用资源管理器或其它的文件管理来做这个步骤。
 
-3) While you're in the boot directory, locate file bootinst.bat
-   Run it by doubleclicking it. It will setup your USB to boot.
+3) 当你进入 boot 目录以后，定位到 bootinst.bat 文件。
+   双击运行它。它会把你的 USB 设备设置为启动。
+   注意：这步会破坏你的 USB 设备上的原来的启动设置，如果原来有启动设置，
+	 可以手工添加相应条目。
 
--- That's it. Your USB device is now ready to boot mylinux.
--- You can safely delete this file (mylinux.txt), it's not needed.
+-- 好了，你的 USB 设备现在可以启动 mylinux 了。
+-- 你可以安全的删除这个文件 (mylinux.txt)，不再需要它了。
