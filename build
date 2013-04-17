@@ -46,19 +46,23 @@ if [ $USEKITNAME = "1" ] ; then
 else
 	BOOT="$LIVEKITDATA"/boot
 fi
+echo $BOOT
 mkdir -p "$BOOT"
-if [ $USEKITNAME = "1" ] ; then
+mkdir -p "$LIVEKITDATA"/"$LIVEKITNAME"
+if [ $USEKITNAME = "0" ] ; then
 	mkdir -p "$BOOT"/../changes
 	mkdir -p "$BOOT"/../modules
 else
-        mkdir -p "$LIVEKITNAME"/changes
-        mkdir -p "$LIVEKITNAME"/modules
+        mkdir -p "LIVEKITDATA"/"$LIVEKITNAME"/changes
+        mkdir -p "LIVEKITDATA"/"$LIVEKITNAME"/modules
 fi
 mv "$INITRAMFS" $BOOT/initrfs.img
 cp bootfiles/* $BOOT
-if $USEKITNAME ;then
+if [ $USEKITNAME = "1" ] ;then
 	cat bootfiles/syslinux.cfg | sed -r "s:/boot/:/$LIVEKITNAME/boot/:" > $BOOT/syslinux.cfg
 	cat bootfiles/bootinst.bat | sed -r "s:/boot/:/$LIVEKITNAME/boot/:" | sed -r "s:\\\\boot\\\\:\\\\$LIVEKITNAME\\\\boot\\\\:" > $BOOT/bootinst.bat
+else
+echo "USEKITNAME=0"
 fi
 cp $VMLINUZ $BOOT/vmlinuz
 
