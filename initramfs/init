@@ -21,7 +21,11 @@ init_proc_sysfs
 
 debug_start
                                                                                                                                                        debug_shell
+init_usbstorage
+sleep 3
 init_devs
+init_nls
+init_vfat
 init_aufs
 init_zram
 
