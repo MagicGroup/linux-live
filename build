@@ -42,9 +42,9 @@ cd ..
 # 删除临时目录
 rm -Rf "$LIVEKITDATA"
 if [ $USEKITNAME = "1" ] ; then
-	BOOT="$LIVEKITDATA"/"$LIVEKITNAME"/boot
+	BOOT="$LIVEKITDATA"/"$LIVEKITNAME"/BOOT
 else
-	BOOT="$LIVEKITDATA"/boot
+	BOOT="$LIVEKITDATA"/BOOT
 fi
 echo $BOOT
 mkdir -p "$BOOT"
@@ -57,7 +57,11 @@ else
         mkdir -p "LIVEKITDATA"/"$LIVEKITNAME"/modules
 fi
 mv "$INITRAMFS" $BOOT/initrfs.img
-cp bootfiles/* $BOOT
+if [ $USEGRUB = "1" ]; then
+	cp -r bootfiles/* $BOOT
+else
+	cp bootfiles/* $BOOT
+fi
 if [ $USEKITNAME = "1" ] ;then
 	cat bootfiles/syslinux.cfg | sed -r "s:/boot/:/$LIVEKITNAME/boot/:" > $BOOT/syslinux.cfg
 	cat bootfiles/bootinst.bat | sed -r "s:/boot/:/$LIVEKITNAME/boot/:" | sed -r "s:\\\\boot\\\\:\\\\$LIVEKITNAME\\\\boot\\\\:" > $BOOT/bootinst.bat
@@ -98,7 +102,15 @@ fi
 # 判断机器架构，目前仅支持 i686 和 x86_64
 ARCH=$(uname -m)
 
-# 制作 iso，下一步加入 grub4dos 的支持
+
+# 制作 iso，支持 grub4dos 和 syslinux
+if [ $USEGRUB = "1" ];then
+	MKISOFSB="-b BOOT/GRUB/grldr"
+	MKISOFSC="-c BOOT/boot.catalog"
+else
+	MKISOFSB="-b BOOT/isolinux.bin"
+	MKISOFSC="-c BOOT/isolinux.boot"
+fi
 if [ $USEKITNAME = "1" ]; then
 	mkisofs -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
 	-no-emul-boot -boot-info-table -boot-load-size 4 \
@@ -106,9 +118,9 @@ if [ $USEKITNAME = "1" ]; then
 	>/dev/null 2>/dev/null
 else
         mkisofs -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
-        -no-emul-boot -boot-info-table -boot-load-size 4 \
-        -b boot/isolinux.bin -c boot/isolinux.boot . \
-        >/dev/null 2>/dev/null
+       	-no-emul-boot -boot-info-table -boot-load-size 4 \
+ 	$MKISOFSB $MKISOFSC . \
+	>/dev/null 2>/dev/null
 fi
 
 # 生成 readme.txt 文件
