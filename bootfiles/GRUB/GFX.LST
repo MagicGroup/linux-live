@@ -1,0 +1,53 @@
+﻿checkrange 0x21 read 0x8280 > nul && pxe detect NotExist
+timeout 30
+default 0
+if not exist /BOOT/GRUB/MESSAGE find --devices=hup --set-root /BOOT/GRUB/MESSAGE
+gfxmenu /BOOT/GRUB/MESSAGE
+configfile (md)4+8
+
+iftitle [if exist (cd)/BOOT/vmlinuz && if exist (cd)/BOOT/initrfs.img  ]  启动 Magic Linux 的 LiveCD \n\tat (cd)/BOOT/initrfs.img && (cd)/BOOT/vmlinuz
+kernel (cd)/BOOT/vmlinuz vga=769 load_ramdisk=1 prompt_ramdisk=0 rw printk.time=0
+initrd (cd)/BOOT/initrfs.img
+
+iftitle [if exist (cd)/BOOT/vmlinuz && if exist (cd)/BOOT/initrfs.img  ]  启动 Magic Linux 的 LiveCD （调试） \n\tat (cd)/BOOT/initrfs.img && (cd)/BOOT/vmlinuz
+kernel (cd)/BOOT/vmlinuz vga=769 load_ramdisk=1 prompt_ramdisk=0 rw printk.time=0 debug
+initrd (cd)/BOOT/initrfs.img
+
+iftitle [if exist /BOOT/MAXDOS.GZ || if exist /BOOT/MAXDOS.IMG ||find --devices=hup --set-root /BOOT/MAXDOS.GZ || find --devices=hup --set-root /BOOT/MAXDOS.IMG]  MaxDOS工具箱	\n
+set loadimg=/BOOT/MAXDOS.GZ
+if not exist %loadimg% && find --devices=hup --set-root %loadimg% || set loadimg=/BOOT/MAXDOS.IMG
+if not exist %loadimg% && find --devices=hup --set-root %loadimg% || set loadimg= && pause && reboot
+map --mem  %loadimg% (fd0)
+map --hook
+rootnoverify (fd0)
+chainloader +1
+boot
+
+iftitle [if exist /BOOT/GRUB/MENU.LST || find --devices=hup --set-root /BOOT/GRUB/MENU.LST]   转VBE简体中文菜单
+if not exist /BOOT/GRUB/MENU.LST find --devices=hup --set-root /BOOT/GRUB/MENU.LST
+configfile /BOOT/GRUB/MENU.LST
+
+iftitle [if exist (cd)/BOOT/ISOLINUX.BIN || if exist (cd)/ISOLINUX.BIN]   转ISOLINUX菜单
+chainloader (cd)/BOOT/ISOLINUX.BIN || chainloader (cd)/ISOLINUX.BIN
+boot
+
+iftitle [find --devices=h --set-root /LDLINUX.SYS || find --devices=h /BOOT/LDLINUX.SYS]   转SYSLINUX菜单
+find --devices=h --set-root /LDLINUX.SYS || find --devices=h --set-root /BOOT/LDLINUX.SYS
+chainloader +1
+
+iftitle [if exist (pd)/pxelinux.0]   转PXELINUX菜单
+pxe keep
+chainloader --raw (pd)/pxelinux.0 || chainloader --force (pd)/pxelinux.0
+
+title   启动下一设备
+boot -1
+
+iftitle [find --devices=h /ntldr && find --devices=h /windows/explorer.exe]   启动 WinXP/2003
+find --devices=h --set-root /ntldr
+chainloader /ntldr || chainloader --force /ntldr || reboot
+
+iftitle [find --devices=h /bootmgr && if exist /windows/system32/winload.exe]   启动 Win7/Vista
+if not exist /BOOT/GRUB/SLIC find --devices=hup --set-root /BOOT/GRUB/SLIC
+/BOOT/GRUB/SLIC /BOOT/GRUB/OEM.BIN
+find --devices=h --set-root /bootmgr
+chainloader /bootmgr || chainloader --force /bootmgr || reboot

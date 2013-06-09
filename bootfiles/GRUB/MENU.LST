@@ -1,0 +1,89 @@
+﻿debug off
+call Fn.0 0x40000 "!BAT\necho -P:0000 $[0000]\t\t\t\t\t\t\t\t\t\0" && initscript (md)0x200+1
+checkrange 0x21 read 0x8280 > nul && pxe detect NotExist
+graphicsmode -1 100:1000 100:1000 24:32
+set loadbj=/BOOT/GRUB/BACK.LZMA
+if not exist %loadbj% && find --devices=hup --set-root %loadbj% || set loadbj=/BOOT/GRUB/BACK.BMP
+if not exist %loadbj% && find --devices=hup --set-root %loadbj% || set loadbj=
+call Fn.15 "%loadbj%" "" && splashimage %loadbj%
+font
+font /BOOT/GRUB/FONT_CN.HEX || find --devices=hup --set-root /BOOT/GRUB/FONT_CN.HEX && font /BOOT/GRUB/FONT_CN.HEX
+color normal=0x0F highlight=0x0E helptext=0x0A heading=0x02 standard=0x02 border=0x77
+
+terminal --font-spacing=1:6
+#menuset详细介绍:http://bbs.wuyou.net/viewthread.php?tid=204607&extra=page%3D1
+#当前使用的是20120105版
+menuset m y=3 w=60 n=1
+
+## Menu AutoNumber
+write 0x8274 0x2001
+
+#hotkey用法介绍:http://code.google.com/p/grubutils/wiki/Hotkey
+#当前使用的是hotkey 20120105版
+hotkey
+
+default 2
+timeout 30
+
+title ※※※ Magic Linux Live CD ※※※
+clear
+
+title
+clear
+
+iftitle [if exist (cd)/BOOT/vmlinuz && if exist (cd)/BOOT/initrfs.img  ] 启动 Magic Linux 的 LiveCD \n\tat (cd)/BOOT/initrfs.img && (cd)/BOOT/vmlinuz
+kernel (cd)/BOOT/vmlinuz vga=769 load_ramdisk=1 prompt_ramdisk=0 rw printk.time=0
+initrd (cd)/BOOT/initrfs.img
+
+iftitle [if exist (cd)/BOOT/vmlinuz && if exist (cd)/BOOT/initrfs.img  ] 启动 Magic Linux 的 LiveCD （调试） \n\tat (cd)/BOOT/initrfs.img && (cd)/BOOT/vmlinuz
+kernel (cd)/BOOT/vmlinuz vga=769 load_ramdisk=1 prompt_ramdisk=0 rw printk.time=0 debug
+initrd (cd)/BOOT/initrfs.img
+
+iftitle [if exist /BOOT/MAXDOS.GZ || if exist /BOOT/MAXDOS.IMG ||find --devices=hup --set-root /BOOT/MAXDOS.GZ || find --devices=hup --set-root /BOOT/MAXDOS.IMG] MaxDOS工具箱	\n
+set loadimg=/BOOT/MAXDOS.GZ
+if not exist %loadimg% && find --devices=hup --set-root %loadimg% || set loadimg=/BOOT/MAXDOS.IMG
+if not exist %loadimg% && find --devices=hup --set-root %loadimg% || set loadimg= && pause && reboot
+map --mem  %loadimg% (fd0)
+map --hook
+rootnoverify (fd0)
+chainloader +1
+boot
+
+iftitle [if exist /BOOT/GRUB/GFX.LST || find --devices=hup --set-root /BOOT/GRUB/GFX.LST] ^F5 按F5转GFX简体中文菜单	\n
+font
+menuset u
+## Close Menu AutoNumber
+write 0x8274 0
+if not exist /BOOT/GRUB/GFX.LST find --devices=hup --set-root /BOOT/GRUB/GFX.LST
+configfile /BOOT/GRUB/GFX.LST
+
+iftitle [if exist (cd)/BOOT/ISOLINUX.BIN || if exist (cd)/ISOLINUX.BIN] ^I 按I转ISOLINUX菜单	\n
+chainloader (cd)/BOOT/ISOLINUX.BIN || chainloader (cd)/ISOLINUX.BIN
+boot
+
+iftitle [find --devices=h --set-root /LDLINUX.SYS || find --devices=h --set-root /BOOT/LDLINUX.SYS] ^S 按S转SYSLINUX菜单	\n
+find --devices=h --set-root /LDLINUX.SYS || find --devices=h --set-root /BOOT/LDLINUX.SYS
+chainloader +1
+
+iftitle [if exist (pd)/pxelinux.0] ^P 按P转PXELINUX菜单	\n
+pxe keep
+chainloader --raw (pd)/pxelinux.0 || chainloader --force (pd)/pxelinux.0
+
+title 启动下一设备	\n\n\t根据BIOS设置的启动顺序，启动下一设备!
+boot -1
+
+iftitle [find --devices=h --set-root /ntldr && find --devices=h --set-root /windows/explorer.exe] 启动 WinXP/2003	\n\n\t通过引导/ntldr，启动 WinXP/2003 系统
+find --devices=h --set-root /ntldr
+chainloader /ntldr || chainloader --force /ntldr || reboot
+
+iftitle [find --devices=h --set-root /bootmgr && find --set-root --devices=h /windows/system32/winload.exe] 启动 Win7/Vista	\n\n\t通过引导/bootmgr，启动 Win7/Vista 系统
+if not exist /BOOT/GRUB/SLIC find --devices=hup --set-root /BOOT/GRUB/SLIC
+/BOOT/GRUB/SLIC /BOOT/GRUB/OEM.BIN
+find --devices=h --set-root /bootmgr
+chainloader /bootmgr || chainloader --force /bootmgr || reboot
+
+title 重启	\n
+reboot
+
+title 关机	\n
+halt
