@@ -152,7 +152,12 @@ init_proc_sysfs()
 init_devs()
 {
    debug_log "init_devs" "$*"
-   echo /sbin/mdev > /proc/sys/kernel/hotplug
+   if [ -w /proc/sys/kernel/hotplug ]
+   then
+   	echo /sbin/mdev > /proc/sys/kernel/hotplug
+   else
+	echo "no writeable /proc/sys/kernel/hotplug founded!"
+   fi
    mdev -s
    modprobe zram 2>/dev/null
    modprobe loop 2>/dev/null
@@ -197,6 +202,12 @@ init_vfat()
   modprobe vfat 2>/dev/null
 }
 
+init_isofs()
+{
+  debug_log "init_isofs" "$*"
+  modprobe isofs 2>/dev/null
+}
+
 # Setup empty union
 # $1 = changes directory (ramfs or persistent changes)
 # $2 = union directory where to mount the union
@@ -210,6 +221,13 @@ init_union()
    mkdir -p "$1"
    mkdir -p "$2"
    mount -t aufs -o xino="/.xino",trunc_xino,br="$1" aufs "$2"
+}
+
+init_scsi()
+{
+   debug_log "init_scsi" "$*"
+   find /lib/modules/*/kernel/drivers/scsi -name *.ko | sed -e 's/^.*\///'| sed -e 's/.ko//' | xargs -n 1 modprobe 2>/dev/null
+   find /lib/modules/*/kernel/drivers/message/fusion -name *.ko | sed -e 's/^.*\///'| sed -e 's/.ko//' | xargs -n 1 modprobe 2>/dev/null
 }
 
 init_usbstorage()

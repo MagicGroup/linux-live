@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # Linux Live Kit version 7
 # 构建用脚本
 
@@ -77,7 +77,7 @@ else
    # 否则就压缩相应的模块，模块列表是 MKMOD 变量
    # create compressed bundles
    for i in $MKMOD; do
-      mksquashfs /$i $LIVEKITDATA/$LIVEKITNAME/$i.$BEXT -comp xz -b 512k -keep-as-directory
+      mksquashfs /$i $LIVEKITDATA/$LIVEKITNAME/$i.$BEXT -comp xz -b 512k -keep-as-directory -ef $EXCLUDELIST
    done
 fi
 

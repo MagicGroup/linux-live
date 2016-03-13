@@ -20,11 +20,13 @@ header "Maigc live start <http://www.magiclinux.org/>"
 init_proc_sysfs
 
 debug_start
-                                                                                                                                                       debug_shell
+
+init_scsi                                                                                                                                                      debug_shell
 init_usbstorage
 sleep 3
 init_devs
 init_nls
+init_isofs
 init_vfat
 init_aufs
 init_zram
