@@ -1,0 +1,4 @@
+./initramfs/static/busybox
+./initramfs/static/eject
+./initramfs/static/mount.dynfilefs
+./initramfs/static/ntfs-3g

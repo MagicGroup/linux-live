@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 # Linux Live Kit version 7
 # 构建用脚本
 
