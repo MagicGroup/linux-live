@@ -49,7 +49,6 @@ echo_green_star()
 
 # log - store given text in /var/log/livedbg
 # log - 存储给定的文本到 /var/log/livedbg
-￥u
 log()
 {
    echo "$@" 2>/dev/null >>/var/log/livedbg
