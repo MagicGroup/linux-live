@@ -111,8 +111,31 @@ for i in $MKMOD; do
       COREFS="$COREFS /$i"
    fi
 done
+case "$ARCH" in
+    x86_64|i386|i686)
+        BCJ_OPT="-Xbcj x86"
+        ;;
+    aarch64|armv7l|armv8l)
+        BCJ_OPT="-Xbcj arm"
+        # 若需针对ARM Thumb指令集优化，可进一步检测：
+        # if grep -q "Thumb" /proc/cpuinfo; then
+        #     BCJ_OPT="armthumb"
+        # fi
+        ;;
+    powerpc|ppc64le)
+        BCJ_OPT="-Xbcj powerpc"
+        ;;
+    sparc*)
+        BCJ_OPT="-Xbcj sparc"
+        ;;
+    *)
+        # 未知架构或不支持时，跳过优化或使用默认值
+        BCJ_OPT=""
+        ;;
+    esac
+mkdir -p $LIVEKITDATA/$LIVEKITNAME/modules/
 if [ "$SKIPCOREMOD" = "" ]; then
-   mksquashfs $COREFS $LIVEKITDATA/$LIVEKITNAME/modules/01-core.$BEXT -comp xz -b 1024K -Xbcj x86 -always-use-fragments -keep-as-directory || exit
+   mksquashfs $COREFS $LIVEKITDATA/$LIVEKITNAME/modules/01-core.$BEXT -comp xz -b 1024K $BCJ_OPT -always-use-fragments -keep-as-directory -ef $EXCLUDELIST || exit
 fi
 
 # 复制 rootcopy 文件夹
@@ -133,10 +156,6 @@ if [ ! -d $TARGET ]; then
    TARGET=/tmp
 fi
 
-# 判断机器架构
-ARCH=$(uname -m)
-
-
 # 制作 iso，支持 grub4dos 和 syslinux
 if [ $USEGRUB = "1" ];then
 	MKISOFSB="-b BOOT/GRUB/grldr"
@@ -146,12 +165,12 @@ else
 	MKISOFSC="-c BOOT/isolinux.boot"
 fi
 if [ $USEKITNAME = "1" ]; then
-	cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
+	echo cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
 	-no-emul-boot -boot-info-table -boot-load-size 4 \
 	-b "$LIVEKITNAME"/boot/isolinux.bin -c "$LIVEKITNAME"/boot/isolinux.boot . \
 	> $TARGET/gen_"$LIVEKITNAME"_iso.sh
 else
-        cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
+        echo cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
        	-no-emul-boot -boot-info-table -boot-load-size 4 \
  	$MKISOFSB $MKISOFSC . \
 	> $TARGET/gen_"$LIVEKITNAME"_iso.sh
