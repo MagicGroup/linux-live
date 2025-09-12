@@ -55,7 +55,7 @@ if [ "$SKIPINITRFS" = "" ]; then
   # 进入 initramfs 目录
   cd initramfs
   # 使用 initramfs_create 脚本
-  INITRAMFS=$(./initramfs_create "$LIVEKITNAME")
+  INITRAMFS=$(./initramfs_create)
   cd ..
 fi
 
@@ -79,7 +79,7 @@ else
         mkdir -p "LIVEKITDATA"/"$LIVEKITNAME"/modules
 fi
 if [ "$INITRAMFS" != "" ]; then
-   mv "$INITRAMFS" $BOOT/initrfs.img
+   mv -v "$INITRAMFS" $BOOT/initrfs.img
 fi
 if [ $USEGRUB = "1" ]; then
 	cp -r bootfiles/* $BOOT
@@ -102,7 +102,6 @@ cp bootfiles/EFI/Boot/syslinux.efi $BOOT/EFI/Boot/bootx64.efi
 cp bootfiles/EFI/Boot/{ldlinux.e64,menu.c32,libutil.c32,vesamenu.c32,libcom32.c32} $BOOT/EFI/Boot
 cat $BOOT/syslinux.cfg | sed -r "s:/$LIVEKITNAME/boot/vesamenu:vesamenu:" > $BOOT/EFI/Boot/syslinux.cfg
 
-
 # create compressed 01-core.sb
 # 参考 linux-live ，只用一个文件，为后续安装做好准备
 COREFS=""
@@ -111,6 +110,7 @@ for i in $MKMOD; do
       COREFS="$COREFS /$i"
    fi
 done
+mkdir -p $LIVEKITDATA/$LIVEKITNAME/modules/
 case "$ARCH" in
     x86_64|i386|i686)
         BCJ_OPT="-Xbcj x86"
@@ -133,7 +133,6 @@ case "$ARCH" in
         BCJ_OPT=""
         ;;
     esac
-mkdir -p $LIVEKITDATA/$LIVEKITNAME/modules/
 if [ "$SKIPCOREMOD" = "" ]; then
    mksquashfs $COREFS $LIVEKITDATA/$LIVEKITNAME/modules/01-core.$BEXT -comp xz -b 1024K $BCJ_OPT -always-use-fragments -keep-as-directory -ef $EXCLUDELIST || exit
 fi
@@ -165,12 +164,12 @@ else
 	MKISOFSC="-c BOOT/isolinux.boot"
 fi
 if [ $USEKITNAME = "1" ]; then
-	echo cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
+	cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
 	-no-emul-boot -boot-info-table -boot-load-size 4 \
 	-b "$LIVEKITNAME"/boot/isolinux.bin -c "$LIVEKITNAME"/boot/isolinux.boot . \
 	> $TARGET/gen_"$LIVEKITNAME"_iso.sh
 else
-        echo cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
+        cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
        	-no-emul-boot -boot-info-table -boot-load-size 4 \
  	$MKISOFSB $MKISOFSC . \
 	> $TARGET/gen_"$LIVEKITNAME"_iso.sh
