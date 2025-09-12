@@ -31,8 +31,16 @@ init_vfat
 init_aufs
 init_zram
 
+# modprobe all devices excluding network drivers
+modprobe_everything -v /drivers/net/
+
+# initialize blkid cache file
+init_blkid_cache
+
 # find data dir with filesystem bundles
-DATA="$(find_data 60 "$DATAMNT")"
+DATA="$(find_data 45 "$DATAMNT")"
+check_data_found "$DATA"
+
                                                                                                                                                       debug_shell
 # setup persistent changes, if possible
 persistent_changes "$DATA" "$CHANGES"
@@ -40,18 +48,25 @@ persistent_changes "$DATA" "$CHANGES"
 # copy to RAM if needed
 DATA="$(copy_to_ram "$DATA" "$CHANGES")"
                                                                                                                                                       debug_shell
-# init aufs union
-init_union "$CHANGES" "$UNION"
+
+# mount bundles
+mount_bundles "$DATA" "$BUNDLES"
+                                                                                                                                                      debug_shell																		   
+# init aufs union, or setup overlayfs union
+init_union "$CHANGES" "$UNION" "$BUNDLES"
                                                                                                                                                       debug_shell
 # add data to union
-union_append_bundles "$DATA" "$BUNDLES" "$UNION"
+union_append_bundles "$BUNDLES" "$UNION"
                                                                                                                                                       debug_shell
 # rootcopy
 copy_rootcopy_content "$DATA" "$UNION"
 
-# create empty fstab
-fstab_create "$UNION"
+# create fstab
+fstab_create "$UNION" "$DATAMNT"
                                                                                                                                                       debug_shell
+# run user custom preinit
+user_preinit "$DATA" "$UNION"
+
 header "Live Kit done, starting $LIVEKITNAME"
 change_root "$UNION"
 

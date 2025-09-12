@@ -12,12 +12,21 @@ CWD="$(pwd)"
 cd $CHANGEDIR
 
 # 引入 .config 和 livekitlib
-. ./.config || exit 1
+. ./config || exit 1
 . ./livekitlib || exit 1
 
 # 只允许 root 运行脚本，函数都定义在 livekitlib 中。
 # only root can continue, because only root can read all files from your system
 allow_only_root
+
+# check for xz
+if [ "$(xz --help 2>&1 | grep -i "Compress")" = "" ]; then
+   echo "xz not found or cannot compress"
+   echo "没找到 xz 或 xz 不能压缩"
+   echo "you may consider installing xz-tools package"
+   echo "你需要安装 xz 工具包"
+   exit 1
+fi
 
 # 检查 mksquashfs 是否支持 xz 压缩
 # check for mksquashfs with xz compression
@@ -27,15 +36,28 @@ if [ "$(mksquashfs 2>&1 | grep "Xdict-size")" = "" ]; then
    exit 1
 fi
 
+
+MKISOFS=$(which mkisofs)
+if [ "$MKISOFS" = "" ]; then
+   MKISOFS=$(which genisoimage)
+fi
+if [ "$MKISOFS" = "" ]; then
+   echo "Cannot find mkisofs or genisoimage, stop"
+   echo "找不到 mkisofs 或 genisoimage，停止"
+   exit 3
+fi
+
 # 构建 initramfs 镜像
 # build initramfs image
-echo "Building intramfs image..."
-echo "创建 initramfs 镜像..."
-# 进入 initramfs 目录
-cd initramfs
-# 使用 initramfs_create 脚本
-INITRAMFS=$(./initramfs_create "$LIVEKITNAME")
-cd ..
+if [ "$SKIPINITRFS" = "" ]; then
+  echo "Building intramfs image..."
+  echo "创建 initramfs 镜像..."
+  # 进入 initramfs 目录
+  cd initramfs
+  # 使用 initramfs_create 脚本
+  INITRAMFS=$(./initramfs_create "$LIVEKITNAME")
+  cd ..
+fi
 
 # 创建 live 的文件系统
 # create live kit filesystem (cpio archive)
@@ -56,7 +78,9 @@ else
         mkdir -p "LIVEKITDATA"/"$LIVEKITNAME"/changes
         mkdir -p "LIVEKITDATA"/"$LIVEKITNAME"/modules
 fi
-mv "$INITRAMFS" $BOOT/initrfs.img
+if [ "$INITRAMFS" != "" ]; then
+   mv "$INITRAMFS" $BOOT/initrfs.img
+fi
 if [ $USEGRUB = "1" ]; then
 	cp -r bootfiles/* $BOOT
 else
@@ -68,17 +92,27 @@ if [ $USEKITNAME = "1" ] ;then
 else
 echo "USEKITNAME=0"
 fi
-cp $VMLINUZ $BOOT/vmlinuz
+cp $VMLINUZ $BOOT/vmlinuz || exit
 
-# 如果已经存在模块，就直接拷贝
-if [ -d sb ]; then
-   cp sb/* $LIVEKITDATA/$LIVEKITNAME/
-else
-   # 否则就压缩相应的模块，模块列表是 MKMOD 变量
-   # create compressed bundles
-   for i in $MKMOD; do
-      mksquashfs /$i $LIVEKITDATA/$LIVEKITNAME/$i.$BEXT -comp xz -b 512k -keep-as-directory -ef $EXCLUDELIST
-   done
+#UEFI 启动
+# UEFI booting
+ARCH=$(uname -m)
+mkdir -p $BOOT/EFI/Boot
+cp bootfiles/EFI/Boot/syslinux.efi $BOOT/EFI/Boot/bootx64.efi
+cp bootfiles/EFI/Boot/{ldlinux.e64,menu.c32,libutil.c32,vesamenu.c32,libcom32.c32} $BOOT/EFI/Boot
+cat $BOOT/syslinux.cfg | sed -r "s:/$LIVEKITNAME/boot/vesamenu:vesamenu:" > $BOOT/EFI/Boot/syslinux.cfg
+
+
+# create compressed 01-core.sb
+# 参考 linux-live ，只用一个文件，为后续安装做好准备
+COREFS=""
+for i in $MKMOD; do
+   if [ -d /$i ]; then
+      COREFS="$COREFS /$i"
+   fi
+done
+if [ "$SKIPCOREMOD" = "" ]; then
+   mksquashfs $COREFS $LIVEKITDATA/$LIVEKITNAME/modules/01-core.$BEXT -comp xz -b 1024K -Xbcj x86 -always-use-fragments -keep-as-directory || exit
 fi
 
 # 复制 rootcopy 文件夹
@@ -99,7 +133,7 @@ if [ ! -d $TARGET ]; then
    TARGET=/tmp
 fi
 
-# 判断机器架构，目前仅支持 i686 和 x86_64
+# 判断机器架构
 ARCH=$(uname -m)
 
 
@@ -112,16 +146,17 @@ else
 	MKISOFSC="-c BOOT/isolinux.boot"
 fi
 if [ $USEKITNAME = "1" ]; then
-	mkisofs -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
+	cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
 	-no-emul-boot -boot-info-table -boot-load-size 4 \
 	-b "$LIVEKITNAME"/boot/isolinux.bin -c "$LIVEKITNAME"/boot/isolinux.boot . \
-	>/dev/null 2>/dev/null
+	> $TARGET/gen_"$LIVEKITNAME"_iso.sh
 else
-        mkisofs -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
+        cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
        	-no-emul-boot -boot-info-table -boot-load-size 4 \
  	$MKISOFSB $MKISOFSC . \
-	>/dev/null 2>/dev/null
+	> $TARGET/gen_"$LIVEKITNAME"_iso.sh
 fi
+chmod o+x $TARGET/gen_"$LIVEKITNAME"_iso.sh
 
 # 生成 readme.txt 文件
 cat "$CWD/bootinfo.txt" | fgrep -v "#" | sed -r "s/mylinux/$LIVEKITNAME/" | sed -r "s/\$//" > readme.txt

@@ -23,7 +23,11 @@ if [ -z "$MYARCH" ]; then
   esac
 fi
 
-ln -f busybox-$MYARCH ./busybox
-ln -f mount.ntfs-3g-$MYARCH ./mount.ntfs-3g
-ln -f mount.dynfilefs-$MYARCH ./mount.dynfilefs
-ln -f eject-$MYARCH ./eject
+cp -fv busybox-$MYARCH ./busybox
+cp -fv mount.ntfs-3g-$MYARCH ./mount.ntfs-3g
+cp -fv mount.dynfilefs-$MYARCH ./mount.dynfilefs
+cp -fv eject-$MYARCH ./eject
+cp -fv mc-$MYARCH ./mc
+cp -fv blkid-$MYARCH ./blkid
+cp -fv mkfs.xfs.custom-$MYARCH ./mkfs.xfs.custom
+cp -fv xfs_growfs-$MYARCH ./xfs_growfs
