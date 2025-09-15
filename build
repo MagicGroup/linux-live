@@ -11,7 +11,7 @@ echo "Changing current directory to $CHANGEDIR"
 CWD="$(pwd)"
 cd $CHANGEDIR
 
-# 引入 .config 和 livekitlib
+# 引入 config 和 livekitlib
 . ./config || exit 1
 . ./livekitlib || exit 1
 

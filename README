@@ -4,7 +4,7 @@ Linux Live 工具包
 用这组脚本可以把一个预安装的 Linux 发行版本，变成 Live 系统的。
 比如说一般所说的 Live CD。
 
-* 在开始构建 Live 系统之前，要编辑 ./.config 以设定一些参数。
+* 在开始构建 Live 系统之前，要编辑 ./config 以设定一些参数。
   最重要的是要更改 LIVEKITNAME 变量。
 
 * 确认你的内核是 /boot/vmlinuz（这个可以看情况）。
