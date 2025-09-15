@@ -163,16 +163,22 @@ else
 	MKISOFSB="-b BOOT/isolinux.bin"
 	MKISOFSC="-c BOOT/isolinux.boot"
 fi
-if [ $USEKITNAME = "1" ]; then
-	cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
-	-no-emul-boot -boot-info-table -boot-load-size 4 \
-	-b "$LIVEKITNAME"/boot/isolinux.bin -c "$LIVEKITNAME"/boot/isolinux.boot . \
-	> $TARGET/gen_"$LIVEKITNAME"_iso.sh
+if [ "$USEKITNAME" = "1" ]; then
+    cat > "$TARGET/gen_${LIVEKITNAME}_iso.sh" << EOF
+    #!/bin/bash
+    cd "$LIVEKITDATA" && \
+    $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
+    -no-emul-boot -boot-info-table -boot-load-size 4 \
+    -b "$LIVEKITNAME/boot/isolinux.bin" -c "$LIVEKITNAME/boot/isolinux.boot" .
+    EOF
 else
-        cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
-       	-no-emul-boot -boot-info-table -boot-load-size 4 \
- 	$MKISOFSB $MKISOFSC . \
-	> $TARGET/gen_"$LIVEKITNAME"_iso.sh
+    cat > "$TARGET/gen_${LIVEKITNAME}_iso.sh" << EOF
+    #!/bin/bash
+    cd "$LIVEKITDATA" && \
+    $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
+    -no-emul-boot -boot-info-table -boot-load-size 4 \
+    $MKISOFSB $MKISOFSC .
+    EOF
 fi
 chmod o+x $TARGET/gen_"$LIVEKITNAME"_iso.sh
 
