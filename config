@@ -33,7 +33,7 @@ EXCLUDE="/etc/fstab /etc/mtab"
 EXCLUDELIST="./exclude.list"
 
 # Temporary directory to store livekit filesystem
-LIVEKITDATA=/tmp/$LIVEKITNAME-data-$$
+LIVEKITDATA=/live/$LIVEKITNAME-data-$$
 
 # Bundle extension, for example 'sb' for .sb extension
 BEXT=sb

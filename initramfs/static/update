@@ -31,3 +31,5 @@ cp -fv mc-$MYARCH ./mc
 cp -fv blkid-$MYARCH ./blkid
 cp -fv mkfs.xfs.custom-$MYARCH ./mkfs.xfs.custom
 cp -fv xfs_growfs-$MYARCH ./xfs_growfs
+cp -fv ncurses-menu-$MYARCH ./ncurses-menu
+
